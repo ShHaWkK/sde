@@ -1,0 +1,52 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "semantic-diff"
+version = "1.0.0"
+description = "Semantic Diff Engine — semantic layer for your pipeline"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+authors = [{ name = "SDE Contributors" }]
+keywords = ["semantic", "diff", "nlp", "embeddings", "text-comparison"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Text Processing :: Linguistic",
+]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.11",
+    "sentence-transformers>=2.2",
+    "nltk>=3.8",
+    "fastapi>=0.104",
+    "uvicorn[standard]>=0.24",
+    "pydantic>=2.4",
+    "rich>=13.6",
+    "typer>=0.9",
+    "redis>=5.0",
+    "httpx>=0.25",
+    "jinja2>=3.1",
+]
+
+[project.optional-dependencies]
+openai = ["openai>=1.3"]
+dev = ["pytest>=7.4", "pytest-asyncio>=0.21", "httpx>=0.25", "ruff>=0.1"]
+
+[project.scripts]
+semantic-diff = "cli.main:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["core", "api", "cli"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
