@@ -1,0 +1,62 @@
+{
+  "name": "sde-vscode",
+  "displayName": "Semantic Diff Engine",
+  "description": "Detect semantic changes in text files — inline highlights for shifts and contradictions",
+  "version": "1.0.0",
+  "publisher": "semantic-diff",
+  "license": "MIT",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other", "Linters"],
+  "keywords": ["semantic", "diff", "nlp", "text", "compare"],
+  "activationEvents": ["onCommand:sde.compare"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "sde.compare",
+        "title": "SDE: Compare with...",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "sde.clearDecorations",
+        "title": "SDE: Clear Highlights"
+      }
+    ],
+    "configuration": {
+      "title": "Semantic Diff Engine",
+      "properties": {
+        "sde.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:8000",
+          "description": "SDE API URL"
+        },
+        "sde.domain": {
+          "type": "string",
+          "default": "default",
+          "enum": ["default", "legal", "medical", "code", "journalism"],
+          "description": "Domain profile"
+        },
+        "sde.explain": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show explanations in tooltips"
+        }
+      }
+    },
+    "menus": {
+      "editor/context": [
+        { "command": "sde.compare", "group": "navigation" }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}

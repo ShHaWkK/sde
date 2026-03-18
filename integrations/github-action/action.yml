@@ -1,0 +1,126 @@
+name: 'Semantic Diff Check'
+description: 'Detect semantic changes between two text files using SDE'
+author: 'SDE Contributors'
+
+branding:
+  icon: 'git-pull-request'
+  color: 'blue'
+
+inputs:
+  file_a:
+    description: 'Path to original file'
+    required: true
+  file_b:
+    description: 'Path to revised file'
+    required: true
+  domain:
+    description: 'Domain profile: default|legal|medical|code|journalism'
+    required: false
+    default: 'default'
+  fail_on:
+    description: 'Fail if verdict reaches this level: semantic_shift|contradiction'
+    required: false
+    default: 'contradiction'
+  explain:
+    description: 'Include natural-language explanations in report'
+    required: false
+    default: 'true'
+  model:
+    description: 'Embedding model to use'
+    required: false
+    default: 'all-MiniLM-L6-v2'
+
+outputs:
+  overall:
+    description: 'Overall verdict: identical|semantic_shift|contradiction'
+  global_score:
+    description: 'Global semantic similarity score (0.0–1.0)'
+  delta_index:
+    description: 'Fraction of content that changed meaning (0.0–1.0)'
+  report_path:
+    description: 'Path to generated HTML report'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install semantic-diff
+      shell: bash
+      run: pip install semantic-diff
+
+    - name: Run semantic diff
+      id: sde
+      shell: bash
+      run: |
+        python - <<'EOF'
+        import json, subprocess, sys, os
+
+        file_a = "${{ inputs.file_a }}"
+        file_b = "${{ inputs.file_b }}"
+        domain = "${{ inputs.domain }}"
+        explain = "${{ inputs.explain }}" == "true"
+        model = "${{ inputs.model }}"
+        fail_on = "${{ inputs.fail_on }}"
+
+        cmd = [
+            "semantic-diff", "diff", file_a, file_b,
+            "--domain", domain, "--model", model, "--json"
+        ]
+        if explain:
+            cmd.append("--explain")
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            print(f"Error: {result.stderr}", file=sys.stderr)
+            sys.exit(1)
+
+        data = json.loads(result.stdout)
+        overall = data["overall"]
+        score = data["global_score"]
+        delta = data["delta_index"]
+
+        # Write outputs
+        with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+            f.write(f"overall={overall}\n")
+            f.write(f"global_score={score}\n")
+            f.write(f"delta_index={delta}\n")
+
+        # Generate HTML report
+        report_path = "/tmp/sde-report.html"
+        subprocess.run(cmd[:-1] + ["--html", report_path])
+
+        with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+            f.write(f"report_path={report_path}\n")
+
+        print(f"Overall: {overall} | Score: {score:.4f} | Delta: {delta:.2%}")
+
+        # Post PR comment if in PR context
+        if os.environ.get("GITHUB_EVENT_NAME") == "pull_request":
+            chunks = data.get("chunks", [])
+            changed = [c for c in chunks if c["verdict"] != "identical"]
+            comment = f"## Semantic Diff Report\n\n"
+            comment += f"**Overall:** `{overall}` | **Score:** {score:.4f} | **Delta:** {delta:.2%}\n\n"
+            if changed:
+                comment += "### Changed chunks\n\n"
+                comment += "| Original | Revised | Verdict | Score |\n"
+                comment += "|----------|---------|---------|-------|\n"
+                for c in changed[:10]:
+                    a = (c["a"] or "")[:60].replace("|", "\\|")
+                    b = (c["b"] or "")[:60].replace("|", "\\|")
+                    comment += f"| {a} | {b} | `{c['verdict']}` | {c['score']:.3f} |\n"
+                if len(changed) > 10:
+                    comment += f"\n_...and {len(changed)-10} more chunks_\n"
+            print(comment)
+
+        # Fail check if threshold exceeded
+        verdict_order = {"identical": 0, "semantic_shift": 1, "contradiction": 2, "unrelated": 2}
+        fail_level = verdict_order.get(fail_on, 1)
+        result_level = verdict_order.get(overall, 0)
+        if result_level >= fail_level:
+            print(f"::error::Semantic diff check failed: overall verdict is '{overall}' (fail threshold: '{fail_on}')")
+            sys.exit(1)
+        EOF

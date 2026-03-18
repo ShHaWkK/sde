@@ -1,0 +1,7 @@
+- id: semantic-diff-check
+  name: Semantic Diff Check
+  description: Detect semantic changes in text files using SDE
+  language: python
+  entry: semantic-diff-pre-commit
+  types: [text]
+  additional_dependencies: ['semantic-diff']

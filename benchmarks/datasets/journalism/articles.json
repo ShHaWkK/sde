@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "text_a": "The company reported a 15% increase in quarterly revenue.",
+    "text_b": "The firm saw its quarterly revenues surge by 15 percent.",
+    "expected_verdict": "identical"
+  },
+  {
+    "id": 2,
+    "text_a": "The policy has received widespread criticism from experts.",
+    "text_b": "The policy has received widespread praise from experts.",
+    "expected_verdict": "contradiction"
+  },
+  {
+    "id": 3,
+    "text_a": "The unemployment rate fell to 4.2% in January.",
+    "text_b": "Unemployment dropped to 4.2 percent last month.",
+    "expected_verdict": "identical"
+  },
+  {
+    "id": 4,
+    "text_a": "The minister defended the decision, citing economic necessity.",
+    "text_b": "The minister came under fire for the controversial decision.",
+    "expected_verdict": "semantic_shift"
+  },
+  {
+    "id": 5,
+    "text_a": "The trial resulted in a not guilty verdict.",
+    "text_b": "The defendant was found guilty at the end of the trial.",
+    "expected_verdict": "contradiction"
+  },
+  {
+    "id": 6,
+    "text_a": "Scientists say the findings are preliminary and require further study.",
+    "text_b": "Researchers confirm breakthrough discovery with high confidence.",
+    "expected_verdict": "contradiction"
+  },
+  {
+    "id": 7,
+    "text_a": "The summit ended without a formal agreement being reached.",
+    "text_b": "Talks concluded without a deal.",
+    "expected_verdict": "identical"
+  },
+  {
+    "id": 8,
+    "text_a": "The CEO voluntarily stepped down to pursue other opportunities.",
+    "text_b": "The CEO was forced out following pressure from the board.",
+    "expected_verdict": "semantic_shift"
+  }
+]

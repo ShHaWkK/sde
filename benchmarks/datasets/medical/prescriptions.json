@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "text_a": "Administer 10mg of metformin twice daily with meals.",
+    "text_b": "Administer 100mg of metformin twice daily with meals.",
+    "expected_verdict": "semantic_shift"
+  },
+  {
+    "id": 2,
+    "text_a": "This medication is contraindicated in patients with renal impairment.",
+    "text_b": "This medication is recommended for patients with renal impairment.",
+    "expected_verdict": "contradiction"
+  },
+  {
+    "id": 3,
+    "text_a": "Take one tablet daily in the morning with a glass of water.",
+    "text_b": "Take one tablet each morning with water.",
+    "expected_verdict": "identical"
+  },
+  {
+    "id": 4,
+    "text_a": "Do not exceed 4000mg of acetaminophen in 24 hours.",
+    "text_b": "Maximum daily dose of acetaminophen is 4 grams.",
+    "expected_verdict": "identical"
+  },
+  {
+    "id": 5,
+    "text_a": "Discontinue use immediately if signs of allergic reaction appear.",
+    "text_b": "Continue use even if mild allergic symptoms develop; consult physician if symptoms persist.",
+    "expected_verdict": "contradiction"
+  },
+  {
+    "id": 6,
+    "text_a": "Store at room temperature between 20-25°C.",
+    "text_b": "Store in refrigerator at 2-8°C.",
+    "expected_verdict": "semantic_shift"
+  },
+  {
+    "id": 7,
+    "text_a": "Administer intravenously over 30 minutes.",
+    "text_b": "Administer via intravenous infusion over a 30-minute period.",
+    "expected_verdict": "identical"
+  },
+  {
+    "id": 8,
+    "text_a": "Not recommended for use during pregnancy.",
+    "text_b": "Safe for use during all trimesters of pregnancy.",
+    "expected_verdict": "contradiction"
+  }
+]

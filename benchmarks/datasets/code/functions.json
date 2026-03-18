@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "text_a": "def add(a, b):\n    return a + b",
+    "text_b": "def sum_values(x, y):\n    return x + y",
+    "expected_verdict": "identical"
+  },
+  {
+    "id": 2,
+    "text_a": "def divide(a, b):\n    return a / b",
+    "text_b": "def divide(a, b):\n    if b == 0:\n        raise ValueError('Division by zero')\n    return a / b",
+    "expected_verdict": "semantic_shift"
+  },
+  {
+    "id": 3,
+    "text_a": "items.sort(reverse=False)",
+    "text_b": "items.sort(reverse=True)",
+    "expected_verdict": "contradiction"
+  },
+  {
+    "id": 4,
+    "text_a": "for i in range(len(items)):\n    print(items[i])",
+    "text_b": "for item in items:\n    print(item)",
+    "expected_verdict": "identical"
+  },
+  {
+    "id": 5,
+    "text_a": "if user.is_admin:\n    grant_access(user)",
+    "text_b": "if not user.is_admin:\n    deny_access(user)",
+    "expected_verdict": "identical"
+  },
+  {
+    "id": 6,
+    "text_a": "return True",
+    "text_b": "return False",
+    "expected_verdict": "contradiction"
+  },
+  {
+    "id": 7,
+    "text_a": "cache = {}\ndef get(key):\n    if key in cache:\n        return cache[key]\n    val = compute(key)\n    cache[key] = val\n    return val",
+    "text_b": "from functools import lru_cache\n\n@lru_cache(maxsize=None)\ndef get(key):\n    return compute(key)",
+    "expected_verdict": "identical"
+  },
+  {
+    "id": 8,
+    "text_a": "connection.close()",
+    "text_b": "connection.open()",
+    "expected_verdict": "contradiction"
+  }
+]

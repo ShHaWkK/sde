@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "text_a": "Machine learning models learn patterns from data to make predictions.",
+    "text_b": "ML systems identify patterns in training data and use them to generate predictions.",
+    "expected_verdict": "identical"
+  },
+  {
+    "id": 2,
+    "text_a": "The model achieved 95% accuracy on the test set.",
+    "text_b": "The model failed to converge and produced random outputs on the test set.",
+    "expected_verdict": "contradiction"
+  },
+  {
+    "id": 3,
+    "text_a": "Use gradient descent to minimize the loss function.",
+    "text_b": "Employ gradient ascent to maximize the reward signal.",
+    "expected_verdict": "semantic_shift"
+  },
+  {
+    "id": 4,
+    "text_a": "The transformer architecture uses self-attention mechanisms.",
+    "text_b": "Transformers rely on attention mechanisms to process sequences in parallel.",
+    "expected_verdict": "identical"
+  },
+  {
+    "id": 5,
+    "text_a": "Overfitting occurs when a model memorizes training data but fails to generalize.",
+    "text_b": "Underfitting happens when a model is too simple to capture the underlying patterns.",
+    "expected_verdict": "semantic_shift"
+  }
+]

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SDE Playground — Semantic Diff Engine</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117; --surface: #161b22; --surface2: #21262d;
+    --border: #30363d; --text: #e6edf3; --text-muted: #8b949e;
+    --accent: #58a6ff; --green: #3fb950; --yellow: #d29922; --red: #f85149;
+    --blue: #58a6ff; --purple: #bc8cff;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f6f8fa; --surface: #ffffff; --surface2: #f6f8fa;
+      --border: #d0d7de; --text: #1f2328; --text-muted: #656d76;
+      --accent: #0969da; --green: #1a7f37; --yellow: #9a6700; --red: #d1242f;
+      --blue: #0969da; --purple: #8250df;
+    }
+  }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; gap: 16px; }
+  .logo { font-size: 1.4em; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
+  .tagline { color: var(--text-muted); font-size: 0.9em; }
+  .badge { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 2px 10px; font-size: 0.75em; color: var(--text-muted); }
+  main { max-width: 1400px; margin: 0 auto; padding: 24px; }
+  .controls { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 20px; display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+  .control-group { display: flex; flex-direction: column; gap: 6px; }
+  label { font-size: 0.8em; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+  select, input[type="text"] { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 0.9em; outline: none; transition: border-color 0.15s; }
+  select:focus, input:focus { border-color: var(--accent); }
+  .checkbox-group { display: flex; align-items: center; gap: 8px; font-size: 0.9em; cursor: pointer; }
+  .checkbox-group input { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
+  button { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 9px 20px; font-size: 0.9em; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+  button:hover { opacity: 0.85; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-demo { background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted); }
+  .editors { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  @media (max-width: 768px) { .editors { grid-template-columns: 1fr; } }
+  .editor-pane { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .editor-header { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 0.85em; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+  .editor-badge { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .badge-a { background: var(--blue); }
+  .badge-b { background: var(--green); }
+  textarea { width: 100%; border: none; background: transparent; color: var(--text); font-size: 0.9em; line-height: 1.6; padding: 16px; resize: vertical; min-height: 200px; outline: none; font-family: inherit; }
+  #results { display: none; }
+  .summary-bar { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 16px; display: flex; gap: 32px; align-items: center; flex-wrap: wrap; }
+  .gauge-wrap { position: relative; width: 80px; height: 80px; }
+  svg.gauge circle { fill: none; stroke-width: 8; transform-origin: center; }
+  .gauge-bg { stroke: var(--surface2); }
+  .gauge-fill { stroke: var(--accent); transform: rotate(-90deg); transition: stroke-dasharray 0.6s ease; }
+  .gauge-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1em; }
+  .metric { text-align: center; }
+  .metric-value { font-size: 1.5em; font-weight: 700; }
+  .metric-label { font-size: 0.75em; color: var(--text-muted); margin-top: 2px; }
+  .verdict-badge { padding: 6px 16px; border-radius: 20px; font-weight: 700; font-size: 0.9em; }
+  .verdict-identical { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+  .verdict-semantic_shift { background: rgba(210,153,34,0.15); color: var(--yellow); border: 1px solid rgba(210,153,34,0.3); }
+  .verdict-contradiction { background: rgba(248,81,73,0.15); color: var(--red); border: 1px solid rgba(248,81,73,0.3); }
+  .verdict-unrelated { background: rgba(188,140,255,0.15); color: var(--purple); border: 1px solid rgba(188,140,255,0.3); }
+  .chunks-table { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .chunks-table table { width: 100%; border-collapse: collapse; }
+  .chunks-table th { background: var(--surface2); padding: 10px 16px; text-align: left; font-size: 0.8em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+  .chunks-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 0.88em; vertical-align: top; line-height: 1.5; }
+  .chunks-table tr:last-child td { border-bottom: none; }
+  .chunk-text { max-width: 300px; word-break: break-word; }
+  .chunk-null { color: var(--text-muted); font-style: italic; }
+  .score-bar { display: flex; align-items: center; gap: 8px; min-width: 120px; }
+  .score-track { flex: 1; background: var(--surface2); height: 6px; border-radius: 3px; overflow: hidden; }
+  .score-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  .score-num { font-size: 0.85em; color: var(--text-muted); min-width: 32px; }
+  .chunk-verdict { padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: 600; white-space: nowrap; }
+  .cv-identical { background: rgba(63,185,80,0.15); color: var(--green); }
+  .cv-semantic_shift { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .cv-contradiction { background: rgba(248,81,73,0.15); color: var(--red); }
+  .cv-added { background: rgba(88,166,255,0.15); color: var(--blue); }
+  .cv-removed { background: rgba(139,148,158,0.15); color: var(--text-muted); }
+  .explanation { font-size: 0.82em; color: var(--text-muted); font-style: italic; margin-top: 4px; }
+  .error-box { background: rgba(248,81,73,0.1); border: 1px solid rgba(248,81,73,0.3); border-radius: 8px; padding: 16px; color: var(--red); }
+  .loading { text-align: center; padding: 40px; color: var(--text-muted); }
+  .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .api-url-wrap { flex: 1; min-width: 200px; }
+  footer { text-align: center; padding: 24px; color: var(--text-muted); font-size: 0.8em; border-top: 1px solid var(--border); margin-top: 40px; }
+  footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">SDE</div>
+  <div>
+    <div style="font-weight:600">Semantic Diff Engine</div>
+    <div class="tagline">The semantic layer missing from your pipeline.</div>
+  </div>
+  <span class="badge">v1.0</span>
+</header>
+
+<main>
+  <div class="controls">
+    <div class="control-group api-url-wrap">
+      <label>API URL</label>
+      <input type="text" id="apiUrl" value="http://localhost:8000" placeholder="http://localhost:8000">
+    </div>
+    <div class="control-group">
+      <label>Domain</label>
+      <select id="domain">
+        <option value="default">Default</option>
+        <option value="legal">Legal</option>
+        <option value="medical">Medical</option>
+        <option value="code">Code</option>
+        <option value="journalism">Journalism</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>Chunking</label>
+      <select id="chunking">
+        <option value="auto">Auto</option>
+        <option value="sentence">Sentence</option>
+        <option value="paragraph">Paragraph</option>
+        <option value="sliding_window">Sliding Window</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label style="visibility:hidden">_</label>
+      <label class="checkbox-group">
+        <input type="checkbox" id="explain" checked>
+        Explain
+      </label>
+    </div>
+    <button id="compareBtn" onclick="runDiff()">Compare</button>
+    <button class="btn-demo" onclick="loadDemo()">Load Demo</button>
+  </div>
+
+  <div class="editors">
+    <div class="editor-pane">
+      <div class="editor-header"><span class="editor-badge badge-a"></span> Version A — Original</div>
+      <textarea id="textA" placeholder="Paste the original text here..."></textarea>
+    </div>
+    <div class="editor-pane">
+      <div class="editor-header"><span class="editor-badge badge-b"></span> Version B — Revised</div>
+      <textarea id="textB" placeholder="Paste the revised text here..."></textarea>
+    </div>
+  </div>
+
+  <div id="results"></div>
+</main>
+
+<footer>
+  Semantic Diff Engine — Open Protocol &bull; <a href="https://github.com/semantic-diff/sde">GitHub</a> &bull; MIT License
+</footer>
+
+<script>
+const DEMO_PAIRS = {
+  legal: {
+    a: `The vendor shall deliver all goods within 30 days of the order date. Payment must be made in full prior to delivery. The contractor shall not subcontract any part of the work without prior written consent from the client. Liability is limited to direct damages not exceeding the total contract value.`,
+    b: `The vendor may deliver goods within a reasonable timeframe following the order. Payment may be made in installments as agreed between the parties. The contractor may subcontract work to qualified third parties at their discretion. The party shall be liable for all damages including indirect, consequential, and punitive losses.`
+  },
+  default: {
+    a: `Machine learning models learn patterns from training data to make predictions on new examples. The process involves defining a model architecture, selecting a loss function, and optimizing parameters using gradient descent. Overfitting occurs when a model memorizes training data but fails to generalize.`,
+    b: `ML systems identify statistical patterns in datasets and apply them to generate predictions on unseen inputs. This requires choosing a neural architecture, a suitable objective function, and parameter optimization via backpropagation. When models perform well on training data but poorly on test data, this is called overfitting.`
+  }
+};
+
+function loadDemo() {
+  const domain = document.getElementById('domain').value;
+  const pair = DEMO_PAIRS[domain] || DEMO_PAIRS.default;
+  document.getElementById('textA').value = pair.a;
+  document.getElementById('textB').value = pair.b;
+}
+
+function scoreColor(score) {
+  if (score >= 0.92) return '#3fb950';
+  if (score >= 0.75) return '#d29922';
+  return '#f85149';
+}
+
+function renderResults(data) {
+  const score = data.global_score;
+  const circ = 2 * Math.PI * 30;
+  const filled = score * circ;
+
+  const chunksHtml = (data.chunks || []).map(c => {
+    const aText = c.a ? `<div class="chunk-text">${escHtml(c.a)}</div>` : `<div class="chunk-null">—</div>`;
+    const bText = c.b ? `<div class="chunk-text">${escHtml(c.b)}</div>` : `<div class="chunk-null">—</div>`;
+    const color = scoreColor(c.score);
+    const scorePct = Math.round(c.score * 100);
+    const explHtml = c.explanation ? `<div class="explanation">${escHtml(c.explanation)}</div>` : '';
+    return `<tr>
+      <td>${aText}</td>
+      <td>${bText}</td>
+      <td>
+        <div class="score-bar">
+          <div class="score-track"><div class="score-fill" style="width:${scorePct}%;background:${color}"></div></div>
+          <span class="score-num">${c.score.toFixed(2)}</span>
+        </div>
+        ${explHtml}
+      </td>
+      <td><span class="chunk-verdict cv-${c.verdict}">${c.verdict.replace('_',' ')}</span></td>
+    </tr>`;
+  }).join('');
+
+  const meta = data.metadata || {};
+
+  document.getElementById('results').innerHTML = `
+    <div class="summary-bar">
+      <div class="gauge-wrap">
+        <svg class="gauge" viewBox="0 0 80 80" width="80" height="80">
+          <circle class="gauge-bg" cx="40" cy="40" r="30"/>
+          <circle class="gauge-fill" cx="40" cy="40" r="30"
+            stroke="${scoreColor(score)}"
+            stroke-dasharray="${filled} ${circ}"
+            stroke-linecap="round"/>
+        </svg>
+        <div class="gauge-text">${Math.round(score*100)}%</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value"><span class="verdict-badge verdict-${data.overall}">${data.overall.replace('_',' ')}</span></div>
+        <div class="metric-label">Overall Verdict</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">${(data.delta_index*100).toFixed(1)}%</div>
+        <div class="metric-label">Delta Index</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">${meta.processing_ms || '—'}ms</div>
+        <div class="metric-label">Processing</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value" style="font-size:0.9em;color:var(--text-muted)">${meta.model || '—'}</div>
+        <div class="metric-label">Model</div>
+      </div>
+    </div>
+    <div class="chunks-table">
+      <table>
+        <thead><tr><th>Version A</th><th>Version B</th><th>Score</th><th>Verdict</th></tr></thead>
+        <tbody>${chunksHtml}</tbody>
+      </table>
+    </div>`;
+  document.getElementById('results').style.display = 'block';
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function runDiff() {
+  const textA = document.getElementById('textA').value.trim();
+  const textB = document.getElementById('textB').value.trim();
+  if (!textA || !textB) {
+    alert('Please enter text in both fields.');
+    return;
+  }
+
+  const btn = document.getElementById('compareBtn');
+  btn.disabled = true;
+  document.getElementById('results').innerHTML = `<div class="loading"><div class="spinner"></div><div>Computing semantic diff...</div></div>`;
+  document.getElementById('results').style.display = 'block';
+
+  const apiUrl = document.getElementById('apiUrl').value.trim().replace(/\/$/, '');
+  const domain = document.getElementById('domain').value;
+  const chunking = document.getElementById('chunking').value;
+  const explain = document.getElementById('explain').checked;
+
+  try {
+    const resp = await fetch(`${apiUrl}/diff`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        version: '1.0',
+        text_a: textA,
+        text_b: textB,
+        domain,
+        options: { chunking_strategy: chunking, explain }
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.text();
+      throw new Error(`API error ${resp.status}: ${err}`);
+    }
+
+    const data = await resp.json();
+    renderResults(data);
+  } catch (e) {
+    // If API is not available, show static demo result
+    if (e.message.includes('fetch') || e.message.includes('Failed') || e.name === 'TypeError') {
+      renderResults(STATIC_DEMO_RESULT);
+    } else {
+      document.getElementById('results').innerHTML = `<div class="error-box"><strong>Error:</strong> ${escHtml(e.message)}<br><small>Is the SDE API running at ${escHtml(apiUrl)}?</small></div>`;
+    }
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Static demo result for offline mode
+const STATIC_DEMO_RESULT = {
+  sde_version: "1.0",
+  overall: "semantic_shift",
+  global_score: 0.7234,
+  delta_index: 0.6667,
+  chunks: [
+    { id: 0, a: "The vendor shall deliver all goods within 30 days of the order date.", b: "The vendor may deliver goods within a reasonable timeframe following the order.", score: 0.7412, verdict: "semantic_shift", explanation: "A firm obligation ('shall') becomes conditional ('may'). A precise deadline ('30 days') becomes vague ('reasonable timeframe').", confidence: 0.88 },
+    { id: 1, a: "Payment must be made in full prior to delivery.", b: "Payment may be made in installments as agreed between the parties.", score: 0.6831, verdict: "semantic_shift", explanation: "A mandatory obligation ('must') becomes optional ('may'). Single payment becomes installment option.", confidence: 0.82 },
+    { id: 2, a: "Liability is limited to direct damages not exceeding the total contract value.", b: "The party shall be liable for all damages including indirect, consequential, and punitive losses.", score: 0.3241, verdict: "contradiction", explanation: "Liability shifts from limited (direct only, capped) to unlimited (all categories).", confidence: 0.94 }
+  ],
+  metadata: { model: "demo-mode", processing_ms: 0, chunk_count_a: 3, chunk_count_b: 3 }
+};
+
+// Keyboard shortcut: Cmd/Ctrl+Enter to compare
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') runDiff();
+});
+</script>
+</body>
+</html>

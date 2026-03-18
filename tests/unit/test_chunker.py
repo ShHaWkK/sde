@@ -33,7 +33,7 @@ def test_chunk_ids_sequential():
 
 
 def test_chunk_sliding_window():
-    text = "A. B. C. D. E. F."
+    text = "First sentence here. Second sentence here. Third sentence here. Fourth sentence here."
     chunks = chunk_sliding_window(text, window=2, step=1)
     assert len(chunks) >= 3
 

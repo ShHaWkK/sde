@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "text_a": "The vendor shall deliver all goods within 30 days of the order date.",
+    "text_b": "The vendor may deliver goods within a reasonable timeframe following the order.",
+    "expected_verdict": "semantic_shift"
+  },
+  {
+    "id": 2,
+    "text_a": "The customer must pay the invoice within 14 days of receipt.",
+    "text_b": "The customer must pay the invoice within 14 days of receipt.",
+    "expected_verdict": "identical"
+  },
+  {
+    "id": 3,
+    "text_a": "The contractor shall not subcontract any part of the work without prior written consent.",
+    "text_b": "The contractor may subcontract any part of the work without restriction.",
+    "expected_verdict": "contradiction"
+  },
+  {
+    "id": 4,
+    "text_a": "Liability is limited to direct damages not exceeding the contract value.",
+    "text_b": "The party shall be liable for all damages including indirect, consequential and punitive losses.",
+    "expected_verdict": "contradiction"
+  },
+  {
+    "id": 5,
+    "text_a": "Either party may terminate this agreement with 30 days written notice.",
+    "text_b": "This agreement may be terminated by either party upon providing thirty (30) days advance written notification.",
+    "expected_verdict": "identical"
+  },
+  {
+    "id": 6,
+    "text_a": "The confidentiality obligation shall survive termination of this agreement for a period of 5 years.",
+    "text_b": "All confidentiality obligations cease upon termination of this agreement.",
+    "expected_verdict": "contradiction"
+  },
+  {
+    "id": 7,
+    "text_a": "Disputes shall be resolved by arbitration in accordance with the rules of the ICC.",
+    "text_b": "Any disputes arising from this contract shall be settled through binding arbitration under ICC rules.",
+    "expected_verdict": "identical"
+  },
+  {
+    "id": 8,
+    "text_a": "The license granted herein is exclusive, worldwide, and irrevocable.",
+    "text_b": "The license granted herein is non-exclusive and limited to the territory specified in Schedule A.",
+    "expected_verdict": "contradiction"
+  },
+  {
+    "id": 9,
+    "text_a": "Payment shall be made in full prior to delivery.",
+    "text_b": "Payment may be made in installments as agreed between the parties.",
+    "expected_verdict": "semantic_shift"
+  },
+  {
+    "id": 10,
+    "text_a": "The agreement is governed by the laws of England and Wales.",
+    "text_b": "This agreement is governed by and construed in accordance with the laws of England and Wales.",
+    "expected_verdict": "identical"
+  }
+]
